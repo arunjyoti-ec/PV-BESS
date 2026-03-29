@@ -1,0 +1,76 @@
+# config.yaml — PV-BESS simulation configuration
+# Copy this file to data/config.yaml and edit before running.
+# All paths are relative to the project root.
+
+simulation:
+  # Site type: industrial_load | solar_pv_plant
+  site: industrial_load
+
+  # Timestep in minutes — must divide 60 evenly (1, 5, 10, 15, 30, 60)
+  timestep_minutes: 60
+
+  # Project lifetime for NPV/IRR calculations (years, 1–50)
+  project_lifetime_years: 25
+
+  # Discount rate for NPV (0–1, e.g. 0.08 = 8%)
+  discount_rate: 0.08
+
+  # Primary optimisation objective:
+  #   cost_reduction | peak_shaving | self_consumption | export_revenue
+  objective: cost_reduction
+
+  # Set to true to validate config + data without running the full simulation
+  dry_run: false
+
+bess:
+  # Usable battery capacity in kWh (must be > 0)
+  capacity_kwh: 500.0
+
+  # Maximum charge/discharge power in kW (must be > 0)
+  power_kw: 250.0
+
+  # State of charge limits (0–1 fraction). soc_min < soc_max.
+  soc_min: 0.10   # 10% — protects battery from deep discharge
+  soc_max: 0.90   # 90% — protects against overcharge
+
+  # Initial SOC at simulation start (must be between soc_min and soc_max)
+  soc_initial: 0.50
+
+  # Round-trip efficiencies (0–1)
+  efficiency_charge: 0.95
+  efficiency_discharge: 0.95
+
+  # Capacity loss per cycle (fraction, e.g. 0.0001 = 0.01% per cycle)
+  degradation_rate_per_cycle: 0.0001
+
+pv:
+  # Installed PV capacity in kWp (must be > 0)
+  capacity_kwp: 1000.0
+
+  # Annual PV degradation rate (fraction, e.g. 0.005 = 0.5%/year)
+  degradation_rate_annual: 0.005
+
+  # Panel efficiency (0–1, typical: 0.18–0.22)
+  panel_efficiency: 0.20
+
+  # Power temperature coefficient (%/°C, typically negative, e.g. -0.004)
+  temperature_coefficient: -0.004
+
+tariff:
+  # Tariff mode: crt_2025 | flat | tou
+  mode: crt_2025
+
+  # Required when mode=crt_2025 or mode=tou
+  tariff_file: data/tariffs/oman_crt_2025.csv
+
+  # Required only when mode=flat (OMR/kWh)
+  # flat_rate_omr_per_kwh: 0.025
+
+data:
+  # Input CSV paths (relative to project root)
+  loads: data/loads/industrial_load_profile.csv
+  pv_generation: data/pv/solar_pv_generation.csv
+  weather: data/weather/muscat_weather.csv
+
+  # Output directory for simulation results
+  outputs: data/outputs
