@@ -29,11 +29,11 @@
 This repository provides a technical framework and decision-support tool for evaluating the integration of Battery Energy Storage Systems (BESS) with solar photovoltaic (PV) generation at two sites in Muscat, Oman:
 
 1. **Load Site (Industrial Load Facility):** Combines grid power, on-site solar PV, and BESS for energy cost optimization via tariff arbitrage, peak shaving, and solar self-consumption.
-2. **Solar PV Generator Site (Shinas Solar Plant):** A utility-scale solar farm designed for grid export, aligned with Oman's transmission network requirements.
+2. **Solar PV Generator Site (Solar PV Plant):** A utility-scale solar farm designed for grid export, aligned with Oman's transmission network requirements.
 
 The project adheres to Oman's regulatory environment (Oman Grid Code, Oman Electrical Standards, 2025 Cost-Reflective Tariff) and incorporates international standards like IEEE 1547, NFPA 855, and others.
 
-| Feature | Industrial Load Facility | Shinas Solar Plant (Generator Site) |
+| Feature | Industrial Load Facility | Solar PV Plant (Generator Site) |
 |---|---|---|
 | Role | Demand management | Grid export |
 | Key Strategy | Tariff arbitrage & peak shaving | Maximize export revenue |
@@ -43,7 +43,7 @@ The project adheres to Oman's regulatory environment (Oman Grid Code, Oman Elect
 
 ## Objectives
 - **Architecture Design:** Develop compliant and efficient electrical and control architectures for both sites.
-- **Cost Optimization:** Target near-100% renewable utilization at the Industrial Load Facility and maximize grid export at Shinas Solar Plant.
+- **Cost Optimization:** Target near-100% renewable utilization at the Industrial Load Facility and maximize grid export at the Solar PV Plant.
 - **Advanced Analytics:** Deliver professional reports and interactive dashboards with predictive analytics, financial metrics, and risk analysis.
 - **Regulatory Compliance:** Ensure system safety, reliability, and adherence to both Omani and international standards.
 - **Future Scalability:** Integrate emerging technologies (AI, blockchain, quantum computing) for global scalability and sustainability.
@@ -58,7 +58,7 @@ The project adheres to Oman's regulatory environment (Oman Grid Code, Oman Elect
 ├── data/                      Input data for analysis
 │   ├── tariffs/               CRT tariff data (CSV/JSON)
 │   ├── loads/                 Industrial load profiles (CSV)
-│   ├── pv/                    Shinas Solar Plant generation data (CSV)
+│   ├── pv/                    Solar PV Plant generation data (CSV)
 │   ├── weather/               Solar irradiance and temperature data (CSV)
 │   └── sample/                Example datasets
 ├── src/                       Source code for the decision-making tool
@@ -143,7 +143,7 @@ The project adheres to Oman's regulatory environment (Oman Grid Code, Oman Elect
 4. **Prepare Data Inputs:**
    - Tariffs: `data/tariffs/` (CSV/JSON).
    - Load Profiles: `data/loads/` (CSV, Industrial Load Facility).
-   - PV Generation: `data/pv/` (CSV, Shinas Solar Plant).
+   - PV Generation: `data/pv/` (CSV, Solar PV Plant).
    - Weather: `data/weather/` (CSV).
 
 ---
