@@ -1,8 +1,10 @@
 # PV-BESS: Integrated Solar PV and Energy Storage Architecture for Oman
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![CI](https://github.com/arunjyoti-ec/PV-BESS/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![License](https://img.shields.io/github/license/arunjyoti-ec/PV-BESS)
 ![Last Commit](https://img.shields.io/github/last-commit/arunjyoti-ec/PV-BESS)
+[![codecov](https://codecov.io/gh/arunjyoti-ec/PV-BESS/branch/main/graph/badge.svg)](https://codecov.io/gh/arunjyoti-ec/PV-BESS)
 
 ## Table of Contents
 - [Overview](#overview)
@@ -111,13 +113,8 @@ The project adheres to Oman's regulatory environment (Oman Grid Code, Oman Elect
 
 | Dependency | Version | Purpose |
 |---|---|---|
-| Python | 3.8+ | Core runtime |
+| Python | 3.10+ | Core runtime |
 | Git | Any | Repository cloning |
-| Streamlit | ≥1.28 | Dashboard UI |
-| TensorFlow / PyTorch | Latest | AI forecasting (optional) |
-| Qiskit | Latest | Quantum readiness (optional) |
-| AWS SageMaker | — | Cloud AI models (optional) |
-| Power BI / Tableau | — | Advanced dashboards (optional) |
 
 ### Setup
 
@@ -131,20 +128,52 @@ The project adheres to Oman's regulatory environment (Oman Grid Code, Oman Elect
    ```bash
    python -m venv venv
    source venv/bin/activate        # Linux/macOS
-   # On Windows:
-   venv\Scripts\activate
+   venv\Scripts\activate           # Windows
    ```
 
 3. **Install Dependencies:**
    ```bash
-   pip install -r requirements.txt
+   pip install -e .
    ```
 
 4. **Prepare Data Inputs:**
-   - Tariffs: `data/tariffs/` (CSV/JSON).
-   - Load Profiles: `data/loads/` (CSV, Industrial Load Facility).
-   - PV Generation: `data/pv/` (CSV, Solar PV Plant).
-   - Weather: `data/weather/` (CSV).
+   - Tariffs: `data/tariffs/` (CSV)
+   - Load Profiles: `data/loads/` (CSV)
+   - PV Generation: `data/pv/` (CSV)
+   - Weather: `data/weather/` (CSV)
+
+5. **Copy and edit the configuration:**
+   ```bash
+   cp data/config.yaml.example data/config.yaml
+   # Edit data/config.yaml to match your site parameters
+   ```
+
+---
+
+## Developer Setup
+
+Install development dependencies and activate pre-commit hooks:
+
+```bash
+pip install -e ".[dev]"
+pre-commit install
+```
+
+**Run the full test suite:**
+
+```bash
+pytest                          # all tests
+pytest -m "not slow"            # skip long-running tests
+pytest --cov --cov-report=html  # with HTML coverage report
+```
+
+**Lint and format:**
+
+```bash
+ruff check .        # linting
+ruff format .       # auto-format
+mypy simulate.py config.py validators.py logger.py  # type checking
+```
 
 ---
 

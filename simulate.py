@@ -2,9 +2,9 @@
 simulate.py — PV-BESS simulation entrypoint.
 
 Usage:
-    python src/bess_model/simulate.py --config data/config.yaml
-    python src/bess_model/simulate.py --config data/config.yaml --dry-run
-    python src/bess_model/simulate.py --config data/config.yaml --log-level DEBUG
+    python simulate.py --config data/config.yaml
+    python simulate.py --config data/config.yaml --dry-run
+    python simulate.py --config data/config.yaml --log-level DEBUG
 """
 
 from __future__ import annotations
@@ -14,12 +14,17 @@ import logging
 import sys
 from pathlib import Path
 
-# Ensure src/ is on the path when running as a script
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+import pandas as pd
 
-from src.utils.config import load_config
-from src.utils.logger import setup_logging
-from src.utils.validators import (
+# Ensure project root is on the path when running as a script
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from config import PVBESSConfig, load_config
+from logger import setup_logging
+from validators import (
+    check_energy_balance,
+    check_power_bounds,
+    check_soc,
     load_csv,
     validate_load_profile,
     validate_pv_generation,
@@ -60,7 +65,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_and_validate_data(cfg):
+def load_and_validate_data(cfg: PVBESSConfig) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """Load all input CSVs and run validation checks."""
     logger.info("Loading and validating input data...")
 
@@ -93,15 +98,19 @@ def load_and_validate_data(cfg):
     return load_df, pv_df, weather_df
 
 
-def run_simulation(cfg, load_df, pv_df, weather_df):
+def run_simulation(
+    cfg: PVBESSConfig,
+    load_df: pd.DataFrame,
+    pv_df: pd.DataFrame,
+    weather_df: pd.DataFrame,  # noqa: ARG001 — reserved for temperature-corrected PV dispatch
+) -> list[dict[str, float]]:
     """
     Core simulation loop — placeholder for bess_model integration.
 
     Replace the body of this function with your actual BESS dispatch logic.
-    Use check_soc() and check_power_bounds() from validators.py inside the loop.
+    Validators check_soc(), check_power_bounds(), and check_energy_balance()
+    are called at every timestep to catch dispatch errors early.
     """
-    from src.utils.validators import check_soc, check_power_bounds
-
     logger.info(
         "Starting simulation — site=%s, objective=%s",
         cfg.simulation.site,
@@ -109,30 +118,37 @@ def run_simulation(cfg, load_df, pv_df, weather_df):
     )
 
     soc = cfg.bess.soc_initial
-    results = []
+    timestep_h = cfg.simulation.timestep_minutes / 60.0
+    results: list[dict[str, float]] = []
 
     for step, (_, load_row) in enumerate(load_df.iterrows()):
-        load_kw = load_row["load_kw"]
-        pv_kw = pv_df.iloc[step]["pv_kw"]
-        timestep_h = cfg.simulation.timestep_minutes / 60.0
+        load_kw = float(load_row["load_kw"])
+        pv_kw = float(pv_df.iloc[step]["pv_kw"])
 
         # --- Placeholder dispatch logic ---
-        # Replace this with your real optimiser/RL dispatch
+        # Replace this with your real optimiser/RL/LP dispatch
         net_kw = load_kw - pv_kw
         bess_kw = max(-cfg.bess.power_kw, min(cfg.bess.power_kw, net_kw))
 
-        # Update SOC
-        delta_soc = -(bess_kw * timestep_h) / cfg.bess.capacity_kwh
+        # Residual demand met by (or exported to) the grid
+        grid_kw = load_kw - pv_kw - bess_kw
+
+        # Efficiency-aware SOC update
+        if bess_kw >= 0:  # discharging
+            delta_soc = -(bess_kw * timestep_h) / (cfg.bess.efficiency_discharge * cfg.bess.capacity_kwh)
+        else:  # charging
+            delta_soc = -(bess_kw * cfg.bess.efficiency_charge * timestep_h) / cfg.bess.capacity_kwh
         soc = max(cfg.bess.soc_min, min(cfg.bess.soc_max, soc + delta_soc))
 
         # Physical sanity checks at every timestep
         check_soc(soc, cfg.bess.soc_min, cfg.bess.soc_max, step=step)
         check_power_bounds(bess_kw, cfg.bess.power_kw, step=step)
+        check_energy_balance(load_kw, pv_kw, bess_kw, grid_kw, timestep_h, step=step)
 
-        results.append({"step": step, "soc": soc, "bess_kw": bess_kw})
+        results.append({"step": step, "soc": soc, "bess_kw": bess_kw, "grid_kw": grid_kw})
 
         if step % 100 == 0:
-            logger.debug("Step %d — SOC=%.2f, BESS=%.2f kW", step, soc, bess_kw)
+            logger.debug("Step %d — SOC=%.2f, BESS=%.2f kW, grid=%.2f kW", step, soc, bess_kw, grid_kw)
 
     logger.info("Simulation complete — %d timesteps processed", len(results))
     return results
